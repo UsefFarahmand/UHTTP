@@ -13,7 +13,7 @@ namespace UHTTP
 
         private static HTTPRequestCard RefreshTokenCard;
         private static Action<string> AccessTokenResolverFromRefreshResponse;
-        public static void SetRefreshTokenData(HTTPRequestCard refreshTokenCard, Action<string> SetNewAccessToken) 
+        public static void SetRefreshTokenData(HTTPRequestCard refreshTokenCard, Action<string> SetNewAccessToken)
         {
             RefreshTokenCard = refreshTokenCard;
             AccessTokenResolverFromRefreshResponse = SetNewAccessToken;
@@ -25,7 +25,11 @@ namespace UHTTP
             PlayerPrefs.GetString(REFRESH_TOKEN_KEY, "");
 
         public static KeyValuePair<string, string> AccessTokenHeader =>
-            new KeyValuePair<string, string>(AUTHORIZATION_HEADER_KEY,"Bearer "+ AccessToken);
+            new KeyValuePair<string, string>(AUTHORIZATION_HEADER_KEY, "Bearer " + AccessToken);
+
+        public static KeyValuePair<string, string> AccessTokenHeaderWithoutBearer =>
+            new KeyValuePair<string, string>(AUTHORIZATION_HEADER_KEY, AccessToken);
+
         public static KeyValuePair<string, string> RefreshTokenHeader =>
             new KeyValuePair<string, string>(AUTHORIZATION_HEADER_KEY, RefreshToken);
 
@@ -68,5 +72,5 @@ namespace UHTTP
             req.SetCard(RefreshTokenCard.CreateRequestData());
             req.Send();
         }
-    }   
+    }
 }

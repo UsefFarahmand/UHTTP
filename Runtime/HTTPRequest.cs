@@ -73,7 +73,7 @@ namespace UHTTP
 
                 // Add JWT
                 if (Data.HaveAuth && !string.IsNullOrEmpty(JWTResolver.AccessToken))
-                    totalHeaders.Add(JWTResolver.AccessTokenHeader);
+                    totalHeaders.Add(JWTResolver.AccessTokenHeaderWithoutBearer);
 
                 // Set
                 if (totalHeaders != null && totalHeaders.Count > 0)
