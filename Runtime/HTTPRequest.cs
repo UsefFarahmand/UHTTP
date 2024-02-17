@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Networking;
-using JWTResolver = UHTTP.JWTTokenResolver;
-using static UHTTP.HTTPRequestCoroutineRunner;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
+using static UHTTP.HTTPRequestCoroutineRunner;
+using JWTResolver = UHTTP.JWTTokenResolver;
 
 namespace UHTTP
 {
@@ -20,12 +20,12 @@ namespace UHTTP
         public HTTPRequest(HTTPRequestData data) =>
             Data = data;
 
-        public HTTPRequest SetCallback(Action<UnityWebRequest> callback) 
+        public HTTPRequest SetCallback(Action<UnityWebRequest> callback)
         {
             this.callback = callback;
             return this;
         }
-           
+
         public void SetCard(HTTPRequestData data) =>
             Data = data;
 
@@ -33,21 +33,21 @@ namespace UHTTP
         {
             UnityWebRequest CreateWebRequest()
             {
-                if(Data.PostFields.Count > 0)
+                if (Data.PostFields.Count > 0)
                     return UnityWebRequest.Post(Data.URL, Data.PostFields);
-                
-                if(Data.PostFormFields.Count > 0)
+
+                if (Data.PostFormFields.Count > 0)
                     return UnityWebRequest.Post(Data.URL, Data.PostFormFields);
 
                 return new UnityWebRequest()
-                    {
-                        method = Data.Method,
-                        url = Data.URL
-                    };
+                {
+                    method = Data.Method,
+                    url = Data.URL
+                };
             }
 
             UnityWebRequest request = CreateWebRequest();
-            
+
             void AddBody()
             {
                 byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(Data.BodyJson);
@@ -73,7 +73,7 @@ namespace UHTTP
 
                 // Add JWT
                 if (Data.HaveAuth && !string.IsNullOrEmpty(JWTResolver.AccessToken))
-                    totalHeaders.Add(JWTResolver.AccessTokenHeaderWithoutBearer);
+                    totalHeaders.Add(JWTResolver.AccessTokenHeader);
 
                 // Set
                 if (totalHeaders != null && totalHeaders.Count > 0)
@@ -89,16 +89,44 @@ namespace UHTTP
             return request;
         }
 
-        public void Send() 
+        public void Send()
         {
             WebRequest = CreateRequest();
-            Run(SendRoutine(WebRequest));
+
+            Run(CheckInternetConnection(Success));
+
+            void Success()
+            {
+                Run(SendRoutine(WebRequest));
+            }
         }
 
         public Coroutine SendCoroutine()
         {
             WebRequest = CreateRequest();
             return Run(SendRoutine(WebRequest));
+        }
+
+        private IEnumerator CheckInternetConnection(Action successCallback)
+        {
+            using (UnityWebRequest www = UnityWebRequest.Get("http://clients3.google.com/generate_204"))
+            {
+                // Timeout value in seconds
+                www.timeout = 5;
+
+                yield return www.SendWebRequest();
+
+                if (www.result == UnityWebRequest.Result.Success)
+                {
+                    // Successfully received a response, so internet connection is available
+                    successCallback();
+                }
+                else
+                {
+                    // Failed to receive a response, so internet connection is not available
+                    callback(www);
+                }
+            }
         }
 
         private IEnumerator SendRoutine(UnityWebRequest request)
